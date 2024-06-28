@@ -1,4 +1,4 @@
-* for my future referencing,
+*/for my future referencing,
 
   ^ = start of a line, 
   \d = [0-9], {4} specifies 4 digits, 
