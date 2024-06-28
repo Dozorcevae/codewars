@@ -1,5 +1,5 @@
 //Task: 'world'  =>  'dlrow'
-
+ 
 function solution(str){
   
   //let - локальная переменная
