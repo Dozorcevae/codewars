@@ -2,7 +2,7 @@ var stringToNumber = function(str){
   return parseInt(str);
 }
 
-//OR
+//OR равносильно
 
 var stringToNumber = function(str){
   return +str;
