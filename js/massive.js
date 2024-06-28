@@ -7,7 +7,7 @@ const reverseSeq = n => {
     ints --;
   }
   return ResArr;
-};
+}; 
 
 //oter solution  
 const reverseSeq = n => {
