@@ -3,105 +3,106 @@
 
 class Student {
 private:
-    char *surname;  // фамилия студента
-    int age;        // возраст студента
-    float avgGrade; // средний балл
+    char *surname;   // Указатель на динамически выделенную строку для фамилии
+    int age;         // Возраст студента
+    float avgGrade;  // Средний балл студента
 
-    // Метод для копирования строки
-    char *copyString(const char *str) {
-        if (str == nullptr) {
-            return nullptr;
+    // Вспомогательный метод для выделения памяти и копирования строки
+    void allocateAndCopy(const char *source) {
+        if (source) {
+            surname = new char[strlen(source) + 1];
+            strcpy(surname, source);
+        } else {
+            surname = nullptr;
         }
-        char *newStr = new char[strlen(str) + 1];
-        strcpy(newStr, str);
-        return newStr;
     }
 
 public:
     // Конструктор по умолчанию
-    Student() : surname(nullptr), age(0), avgGrade(0.0f) {
+    Student() : surname(nullptr), age(18), avgGrade(0.0f) {
+        // Инициализация фамилии пустой строкой
+        allocateAndCopy("NoSurname");
     }
 
     // Конструктор с параметрами
-    Student(const char *surname, int age, float avgGrade) 
-        : age(age), avgGrade(avgGrade) {
-        this->surname = copyString(surname);
+    Student(const char *newSurname, int newAge, float newAvgGrade)
+        : age(newAge), avgGrade(newAvgGrade) {
+        allocateAndCopy(newSurname);
     }
 
     // Конструктор копирования
-    Student(const Student &other) {
-        surname = copyString(other.surname);
-        age = other.age;
-        avgGrade = other.avgGrade;
+    Student(const Student &other) : age(other.age), avgGrade(other.avgGrade) {
+        allocateAndCopy(other.surname);
     }
 
     // Оператор присваивания
     Student &operator=(const Student &other) {
-        if (this == &other) {
-            return *this;
+        if (this != &other) {
+            // Освобождаем память перед новым присваиванием
+            delete[] surname;
+            age = other.age;
+            avgGrade = other.avgGrade;
+            allocateAndCopy(other.surname);
         }
-
-        // Освобождение старой памяти
-        delete[] surname;
-
-        // Копирование данных
-        surname = copyString(other.surname);
-        age = other.age;
-        avgGrade = other.avgGrade;
-
         return *this;
     }
 
-    // Оператор сложения для сложения средних баллов двух студентов
+    // Оператор сложения студентов (средний балл - среднее арифметическое)
     Student operator+(const Student &other) const {
-        char *newSurname = new char[strlen(this->surname) + strlen(other.surname) + 4];
-        strcpy(newSurname, this->surname);
-        strcat(newSurname, " & ");
-        strcat(newSurname, other.surname);
+        char *combinedSurname = new char[strlen(this->surname) + strlen(other.surname) + 3];
+        strcpy(combinedSurname, this->surname);
+        strcat(combinedSurname, " & ");
+        strcat(combinedSurname, other.surname);
 
-        Student newStudent(newSurname, this->age, (this->avgGrade + other.avgGrade) / 2.0f);
-        delete[] newSurname;
-        return newStudent;
+        // Возраст остаётся как возраст первого студента
+        Student combinedStudent(combinedSurname, this->age, (this->avgGrade + other.avgGrade) / 2);
+        delete[] combinedSurname;
+
+        return combinedStudent;
     }
 
     // Метод для изменения данных студента
-    void setStudent(const char *surname, int age, float avgGrade) {
-        delete[] this->surname;
-
-        this->surname = copyString(surname);
-        this->age = age;
-        this->avgGrade = avgGrade;
+    void updateStudent(const char *newSurname, int newAge, float newAvgGrade) {
+        delete[] surname;  // Освобождаем предыдущую память
+        allocateAndCopy(newSurname);
+        age = newAge;
+        avgGrade = newAvgGrade;
     }
 
     // Метод для вывода информации о студенте
-    void display() const {
-        std::cout << "Surname: " << (surname ? surname : "Unknown") << std::endl;
-        std::cout << "Age: " << age << std::endl;
-        std::cout << "Average Grade: " << avgGrade << std::endl;
+    void displayInfo() const {
+        std::cout << "Фамилия: " << (surname ? surname : "Unknown") << std::endl;
+        std::cout << "Возраст: " << age << std::endl;
+        std::cout << "Средний балл: " << avgGrade << std::endl;
     }
 
     // Деструктор
     ~Student() {
-        delete[] surname;
+        delete[] surname;  // Освобождаем динамически выделенную память
     }
 };
 
 int main() {
-    // Создание объектов класса Student
-    Student student1("Ivanov", 20, 4.5f);
-    Student student2("Petrov", 22, 4.8f);
+    // Создание объектов класса Student с использованием разных конструкторов
+    Student student1("Sidorov", 19, 4.3f);
+    Student student2("Ivanova", 21, 4.7f);
+    Student student3;  // Использование конструктора по умолчанию
 
     // Вывод информации о студентах
-    std::cout << "Student 1:" << std::endl;
-    student1.display();
+    std::cout << "Информация о студентах:" << std::endl;
+    student1.displayInfo();
+    student2.displayInfo();
+    student3.displayInfo();
 
-    std::cout << "\nStudent 2:" << std::endl;
-    student2.display();
+    // Обновление данных студента
+    student3.updateStudent("Petrov", 20, 3.9f);
+    std::cout << "\nОбновлённая информация о студенте 3:" << std::endl;
+    student3.displayInfo();
 
-    // Сложение двух объектов(студентов)
+    // Сложение двух студентов
     Student combinedStudent = student1 + student2;
-    std::cout << "\nCombined Student:" << std::endl;
-    combinedStudent.display();
+    std::cout << "\nОбъединённый студент:" << std::endl;
+    combinedStudent.displayInfo();
 
     return 0;
 }
