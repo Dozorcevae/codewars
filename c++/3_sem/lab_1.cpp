@@ -3,11 +3,11 @@
 
 class Student {
 private:
-    char *surname;   // Указатель на динамически выделенную строку для фамилии
-    int age;         // Возраст студента
-    float avgGrade;  // Средний балл студента
+    char *surname;   // выделение памяти под фамилию
+    int age;         // Возраст 
+    float avgGrade;  // Средний балл 
 
-    // Вспомогательный метод для выделения памяти и копирования строки
+    // вспомогательный метод для выделения памяти и копирования строки
     void allocateAndCopy(const char *source) {
         if (source) {
             surname = new char[strlen(source) + 1];
