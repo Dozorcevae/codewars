@@ -1,9 +1,3 @@
-//
-//  Node.hpp
-//  code
-//
-//  Created by Елена Дозорцева on 22.12.2024.
-//
 
 #ifndef Node_hpp
 #define Node_hpp
