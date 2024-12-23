@@ -1,9 +1,4 @@
-//
-//  Undergraduate.hpp
-//  code
-//
-//  Created by Елена Дозорцева on 20.12.2024.
-//
+
 
 #ifndef Undergraduate_hpp
 #define Undergraduate_hpp
