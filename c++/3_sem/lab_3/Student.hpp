@@ -1,7 +1,8 @@
-
 #ifndef Student_hpp
 #define Student_hpp
-#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <cstring>
 
 class Student{
 private:
@@ -23,18 +24,26 @@ public:
     
     //метод для вывода данных
     void display() const;
+
+    //метод для установки данных
+    void setStudent(const char* s, int a, float avg);
     
-    //перегрузка операций
-    Student operator+(const Student& other);
-    Student& operator=(const Student& other);
-    Student& operator++();
-    Student operator++(int);
+    //операторы ввода/вывода
+    //оператор для ввода информации в поток (загрузка данных в файл)
+    friend std::ostream& operator<<(std::ostream& os, const Student& student);
+    //оператор для вывода данных (чтение информации из потока)
+    friend std::istream& operator>>(std::istream& is, Student& student);
     
-    //приведение к типу
-    operator float() const;
+    //функции для работы с файлами (сохранение/выгрузка)
     
-    //дружественная функция вычитания
-    friend Student operator-(const Student& a, const Student& b);
+    //функции для бинарного файла
+    void saveToBinary(const char* filename) const;
+    void loadFronBinaryFile(const char* filename);
+    //для текстового файла
+    void saveToTxt(const char* filename) const;
+    void loadFromTxt(const char* filename);
+    
+    
 };
 
 #endif /* Student_hpp */
