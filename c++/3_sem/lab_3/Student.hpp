@@ -1,8 +1,7 @@
 #ifndef Student_hpp
 #define Student_hpp
-#include <iostream>
 #include <fstream>
-#include <cstring>
+#include <limits>
 
 class Student{
 private:
@@ -11,7 +10,7 @@ private:
     float avg_grade;
     
 public:
-    //Конструкторы и диструктор
+    //Конструкторы и деструктор
     Student();
     Student(const char* s, int a, float avg);
     Student(const Student& other);
@@ -19,8 +18,9 @@ public:
     
     //методы для изменения данных
     void SetSurname(const char* s);
-    void SetAge(const int a);
-    void SetAvgGrade(const float avg);
+    //const not use!!!!!!!!!!!!
+    void SetAge(int a);
+    void SetAvgGrade(float avg);
     
     //метод для вывода данных
     void display() const;
@@ -38,12 +38,10 @@ public:
     
     //функции для бинарного файла
     void saveToBinary(const char* filename) const;
-    void loadFronBinaryFile(const char* filename);
+    void loadFromBinaryFile(const char* filename);
     //для текстового файла
     void saveToTxt(const char* filename) const;
     void loadFromTxt(const char* filename);
-    
-    
 };
 
 #endif /* Student_hpp */
