@@ -1,4 +1,3 @@
-
 #include "Student.hpp"
 
 // Конструктор по умолчанию
@@ -24,8 +23,14 @@ Student::~Student() {
 // Установка данных студента
 void Student::setStudent(const char* s, int a, float avg) {
     delete[] surname;
-    surname = new char[strlen(s) + 1];
-    strcpy(surname, s);
+    // TODO: !!!!!!!!!!!! check nullptr meaning
+    if (s && strlen(s)>0) {
+        surname = new char[strlen(s)+1];
+        strcpy(surname,s);
+    }else {
+        surname = new char[1];
+        surname[0] = '\0';
+    }
     age = a;
     avg_grade = avg;
 }

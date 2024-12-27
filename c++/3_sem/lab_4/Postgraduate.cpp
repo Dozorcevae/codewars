@@ -1,18 +1,21 @@
-
 #include "Postgraduate.hpp"
 // Конструктор по умолчанию
-Postgraduate::Postgraduate() : Student(), research_topic(nullptr) {}
+Postgraduate::Postgraduate() : Student(), research_topic(nullptr) {
+}
 
 // Конструктор с параметрами
-Postgraduate::Postgraduate(const char* s, int a, float avg, const char* topic) : Student(s, a, avg) {
+Postgraduate::Postgraduate(const char *s, int a, float avg, const char *topic) : Student(s, a, avg) {
     research_topic = new char[strlen(topic) + 1];
     strcpy(research_topic, topic);
 }
 
 // Конструктор копирования
-Postgraduate::Postgraduate(const Postgraduate& other) : Student(other) {
-    research_topic = new char[strlen(other.research_topic) + 1];
-    strcpy(research_topic, other.research_topic);
+// TODO:Конструктор копирования реализован правильно ,но я бы в классах наследниках лучше бы вызывал его явно
+Postgraduate::Postgraduate(const Postgraduate &_other) : Student(_other) {
+    if (_other.research_topic) {
+        research_topic = new char[strlen(_other.research_topic) + 1];
+        strcpy(research_topic, _other.research_topic);
+    } else research_topic = nullptr;
 }
 
 // Деструктор
@@ -21,7 +24,7 @@ Postgraduate::~Postgraduate() {
 }
 
 // Установка темы исследования
-void Postgraduate::setResearchTopic(const char* topic) {
+void Postgraduate::setResearchTopic(const char *topic) {
     delete[] research_topic;
     research_topic = new char[strlen(topic) + 1];
     strcpy(research_topic, topic);

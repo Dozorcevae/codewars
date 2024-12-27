@@ -1,4 +1,3 @@
-
 #include "Undergraduate.hpp"
 
 // Конструктор по умолчанию
