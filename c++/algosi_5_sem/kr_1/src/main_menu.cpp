@@ -1,5 +1,5 @@
 #include <iostream>
-#include "/Users/elenadozorceva/codewars/c++/algosi_5_sem/include/bst.hpp"
+#include "/Users/elenadozorceva/codewars/c++/algosi_5_sem/kr_1/include/bst.hpp"
 
 // функция для show(): печать с отступами underscore
 static void emitKey(const int& key, int level) {
