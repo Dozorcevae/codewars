@@ -1,0 +1,134 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:PascalTypeAnalyzer.Presentation.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="820"
+        x:Class="PascalTypeAnalyzer.Presentation.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="PascalTypeAnalyzer" MinWidth="1000" MinHeight="700">
+  <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Menu Grid.Row="0">
+      <MenuItem Header="Файл"><MenuItem Header="Создать" Command="{Binding NewCommand}"/>
+        <MenuItem Header="Открыть" Command="{Binding OpenCommand}" CommandParameter="{Binding $parent[Window]}"/>
+        <MenuItem Header="Сохранить" Command="{Binding SaveCommand}" CommandParameter="{Binding $parent[Window]}"/>
+        <MenuItem Header="Сохранить как" Command="{Binding SaveAsCommand}" CommandParameter="{Binding $parent[Window]}"/>
+        <Separator/><MenuItem Header="Выход" Command="{Binding ExitCommand}" CommandParameter="{Binding $parent[Window]}"/></MenuItem>
+      <MenuItem Header="Правка">
+        <MenuItem Header="Отменить" Command="{Binding UndoCommand}"/>
+        <MenuItem Header="Вырезать" Command="{Binding CutCommand}"/>
+        <MenuItem Header="Копировать" Command="{Binding CopyCommand}"/>
+        <MenuItem Header="Вставить" Command="{Binding PasteCommand}"/>
+        <MenuItem Header="Выделить все" Command="{Binding SelectAllCommand}"/>
+      </MenuItem>
+      <MenuItem Header="Анализ"><MenuItem Header="Запустить анализ" Command="{Binding AnalyzeCommand}"/></MenuItem>
+      <MenuItem Header="Справка"><MenuItem Header="Руководство пользователя" Command="{Binding HelpCommand}" CommandParameter="{Binding $parent[Window]}"/>
+        <MenuItem Header="О программе" Command="{Binding AboutCommand}" CommandParameter="{Binding $parent[Window]}"/></MenuItem>
+    </Menu>
+
+    <Border Grid.Row="1" Padding="8" BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="Новый" Command="{Binding NewCommand}"/>
+        <Button Content="Открыть" Command="{Binding OpenCommand}" CommandParameter="{Binding $parent[Window]}"/>
+        <Button Content="Сохранить" Command="{Binding SaveCommand}" CommandParameter="{Binding $parent[Window]}"/>
+        <Button Content="▶ Запустить анализ" Command="{Binding AnalyzeCommand}" Background="#2563EB" Foreground="White"/>
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="12" MinHeight="380">
+      <Border Grid.Column="0" Margin="0,0,6,0" MinWidth="340" BorderBrush="#D7D7D7" BorderThickness="1" CornerRadius="8" Padding="10">
+        <TextBox Text="{Binding SourceText}" AcceptsReturn="True" FontFamily="Consolas" FontSize="15"
+                 Watermark="type TAge = integer;" TextWrapping="Wrap"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+      </Border>
+      <TabControl Grid.Column="1" Margin="6,0,0,0" MinWidth="360" SelectedIndex="{Binding SelectedResultTabIndex}">
+        <TabItem Header="Дерево">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="{Binding TreeSectionTitle}"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
+              <TreeView ItemsSource="{Binding SyntaxTreeNodes}">
+                <TreeView.ItemContainerTheme>
+                  <ControlTheme TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded"
+                            Value="{Binding IsExpanded, Mode=TwoWay}" />
+                  </ControlTheme>
+                </TreeView.ItemContainerTheme>
+
+                <TreeView.ItemTemplate>
+                  <TreeDataTemplate ItemsSource="{Binding Children}">
+                    <TextBlock Text="{Binding Header}" TextWrapping="Wrap"/>
+                  </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+              </TreeView>
+            </ScrollViewer>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Сообщения">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="Диагностические сообщения"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+            <ListBox Grid.Row="1" ItemsSource="{Binding Diagnostics}">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Border Padding="6" Margin="0,0,0,6" Background="#F8FAFC" CornerRadius="6">
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Лексемы">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="Список лексем"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Tokens}" AutoGenerateColumns="False" HorizontalAlignment="Stretch">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="180"/>
+                <DataGridTextColumn Header="Значение" Binding="{Binding Value}" Width="*"/>
+                <DataGridTextColumn Header="Строка" Binding="{Binding Line}" Width="90"/>
+                <DataGridTextColumn Header="Столбец" Binding="{Binding Column}" Width="90"/>
+                <DataGridTextColumn Header="Позиция" Binding="{Binding Position}" Width="90"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Текст дерева">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="Текстовое представление дерева"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+            <TextBox Grid.Row="1"
+                     Text="{Binding TreeText}"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="NoWrap"
+                     FontFamily="Consolas"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+          </Grid>
+        </TabItem>
+      </TabControl>
+    </Grid>
+
+    <Border Grid.Row="3" Padding="8" BorderBrush="#DDDDDD" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="2*,Auto,*">
+        <TextBlock Text="{Binding Status}"/>
+        <TextBlock Grid.Column="1" Margin="20,0" Text="{Binding ErrorCount, StringFormat='Ошибок: {0}'}"/>
+        <TextBlock Grid.Column="2" HorizontalAlignment="Right" Text="{Binding CurrentFilePath}"/>
+      </Grid>
+    </Border>
+  </Grid>
+</Window>
