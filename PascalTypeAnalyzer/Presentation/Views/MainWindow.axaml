@@ -35,10 +35,10 @@
       </StackPanel>
     </Border>
 
-    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="12" ColumnSpacing="12">
+    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="12">
       <Border Grid.Column="0" BorderBrush="#D7D7D7" BorderThickness="1" CornerRadius="8" Padding="10">
         <TextBox Text="{Binding SourceText}" AcceptsReturn="True" FontFamily="Consolas" FontSize="15"
-                 Watermark="type TAge = integer;" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                 Watermark="type TAge = integer;" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
       </Border>
       <TabControl Grid.Column="1">
         <TabItem Header="Дерево">
