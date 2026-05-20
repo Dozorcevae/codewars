@@ -27,7 +27,7 @@ public sealed class Parser
             return node;
         }
 
-        node.Add(new SyntaxNode("type", typeToken.Value, typeToken));
+        node.Add(new SyntaxNode("TypeKeyword", typeToken.Value, typeToken));
 
         while (Current.Type != TokenType.EndOfInput)
         {
@@ -114,7 +114,7 @@ public sealed class Parser
     {
         var node = new SyntaxNode("ArrayType");
         var array = Next();
-        node.Add(new SyntaxNode("array", array.Value, array));
+        node.Add(new SyntaxNode("ArrayKeyword", array.Value, array));
         if (!Match(TokenType.LeftBracket, "после ключевого слова 'array' ожидается '['.", out var lb)) return null;
         node.Add(new SyntaxNode("LeftBracket", lb.Value, lb));
 
@@ -126,7 +126,7 @@ public sealed class Parser
         node.Add(new SyntaxNode("RightBracket", rb.Value, rb));
 
         if (!Match(TokenType.OfKeyword, "после ']' ожидается ключевое слово 'of'.", out var of)) return null;
-        node.Add(new SyntaxNode("of", of.Value, of));
+        node.Add(new SyntaxNode("OfKeyword", of.Value, of));
 
         var nested = ParseTypeSpec();
         if (nested is null) return null;

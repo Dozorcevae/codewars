@@ -1,7 +1,8 @@
-
-# macOS
 .DS_Store
-
-# .NET build output
 bin/
 obj/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
