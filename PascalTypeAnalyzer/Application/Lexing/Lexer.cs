@@ -48,13 +48,34 @@ public sealed class Lexer
 
             switch (ch)
             {
-                case '=': AddSingle(TokenType.Equal, "="); break;
-                case ';': AddSingle(TokenType.Semicolon, ";"); break;
-                case ',': AddSingle(TokenType.Comma, ","); break;
-                case '(': AddSingle(TokenType.LeftParen, "("); break;
-                case ')': AddSingle(TokenType.RightParen, ")"); break;
-                case '[': AddSingle(TokenType.LeftBracket, "["); break;
-                case ']': AddSingle(TokenType.RightBracket, "]"); break;
+                case '=':
+                    tokens.Add(new Token(TokenType.Equal, "=", startPos, startLine, startCol));
+                    Advance(ch, ref pos, ref line, ref column);
+                    break;
+                case ';':
+                    tokens.Add(new Token(TokenType.Semicolon, ";", startPos, startLine, startCol));
+                    Advance(ch, ref pos, ref line, ref column);
+                    break;
+                case ',':
+                    tokens.Add(new Token(TokenType.Comma, ",", startPos, startLine, startCol));
+                    Advance(ch, ref pos, ref line, ref column);
+                    break;
+                case '(':
+                    tokens.Add(new Token(TokenType.LeftParen, "(", startPos, startLine, startCol));
+                    Advance(ch, ref pos, ref line, ref column);
+                    break;
+                case ')':
+                    tokens.Add(new Token(TokenType.RightParen, ")", startPos, startLine, startCol));
+                    Advance(ch, ref pos, ref line, ref column);
+                    break;
+                case '[':
+                    tokens.Add(new Token(TokenType.LeftBracket, "[", startPos, startLine, startCol));
+                    Advance(ch, ref pos, ref line, ref column);
+                    break;
+                case ']':
+                    tokens.Add(new Token(TokenType.RightBracket, "]", startPos, startLine, startCol));
+                    Advance(ch, ref pos, ref line, ref column);
+                    break;
                 case '.':
                     if (pos + 1 < text.Length && text[pos + 1] == '.')
                     {
@@ -66,7 +87,7 @@ public sealed class Lexer
                     {
                         tokens.Add(new Token(TokenType.Unknown, ".", startPos, startLine, startCol));
                         diagnostics.Add(new DiagnosticMessage(startLine, startCol, "Одиночная точка '.' недопустима, ожидается '..'."));
-                        Advance('.', ref pos, ref line, ref column);
+                        Advance(ch, ref pos, ref line, ref column);
                     }
                     break;
                 default:
@@ -79,12 +100,6 @@ public sealed class Lexer
 
         tokens.Add(new Token(TokenType.EndOfInput, string.Empty, pos, line, column));
         return (tokens, diagnostics);
-
-        void AddSingle(TokenType type, string value)
-        {
-            tokens.Add(new Token(type, value, startPos, startLine, startCol));
-            Advance(ch, ref pos, ref line, ref column);
-        }
     }
 
     private static TokenType GetWordTokenType(string value)
