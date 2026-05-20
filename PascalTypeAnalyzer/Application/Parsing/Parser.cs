@@ -46,14 +46,14 @@ public sealed class Parser
         node.Add(new SyntaxNode("Identifier", id.Value, id));
 
         if (!Match(TokenType.Equal, "после имени типа ожидается символ '='.", out var eq)) return null;
-        node.Add(new SyntaxNode("=", eq.Value, eq));
+        node.Add(new SyntaxNode("Equal", eq.Value, eq));
 
         var typeSpec = ParseTypeSpec();
         if (typeSpec is null) return null;
         node.Add(typeSpec);
 
         if (!Match(TokenType.Semicolon, "описание типа должно заканчиваться символом ';'.", out var semicolon)) return null;
-        node.Add(new SyntaxNode(";", semicolon.Value, semicolon));
+        node.Add(new SyntaxNode("Semicolon", semicolon.Value, semicolon));
 
         return node;
     }
@@ -92,7 +92,7 @@ public sealed class Parser
     {
         var node = new SyntaxNode("EnumType");
         if (!Match(TokenType.LeftParen, "ожидается '(' для перечислимого типа.", out var leftParen)) return null;
-        node.Add(new SyntaxNode("(", leftParen.Value, leftParen));
+        node.Add(new SyntaxNode("LeftParen", leftParen.Value, leftParen));
 
         if (!Match(TokenType.Identifier, "в перечислимом типе ожидается идентификатор элемента.", out var id)) return null;
         node.Add(new SyntaxNode("Identifier", id.Value, id));
@@ -100,13 +100,13 @@ public sealed class Parser
         while (Current.Type == TokenType.Comma)
         {
             var comma = Next();
-            node.Add(new SyntaxNode(",", comma.Value, comma));
+            node.Add(new SyntaxNode("Comma", comma.Value, comma));
             if (!Match(TokenType.Identifier, "после запятой ожидается идентификатор элемента перечисления.", out var nextId)) return null;
             node.Add(new SyntaxNode("Identifier", nextId.Value, nextId));
         }
 
         if (!Match(TokenType.RightParen, "ожидается ')' в конце перечислимого типа.", out var rp)) return null;
-        node.Add(new SyntaxNode(")", rp.Value, rp));
+        node.Add(new SyntaxNode("RightParen", rp.Value, rp));
         return node;
     }
 
@@ -116,14 +116,14 @@ public sealed class Parser
         var array = Next();
         node.Add(new SyntaxNode("array", array.Value, array));
         if (!Match(TokenType.LeftBracket, "после ключевого слова 'array' ожидается '['.", out var lb)) return null;
-        node.Add(new SyntaxNode("[", lb.Value, lb));
+        node.Add(new SyntaxNode("LeftBracket", lb.Value, lb));
 
         var index = ParseIndexType();
         if (index is null) return null;
         node.Add(index);
 
         if (!Match(TokenType.RightBracket, "после типа индекса ожидается ']'.", out var rb)) return null;
-        node.Add(new SyntaxNode("]", rb.Value, rb));
+        node.Add(new SyntaxNode("RightBracket", rb.Value, rb));
 
         if (!Match(TokenType.OfKeyword, "после ']' ожидается ключевое слово 'of'.", out var of)) return null;
         node.Add(new SyntaxNode("of", of.Value, of));

@@ -21,6 +21,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _status = "Готов к анализу";
     [ObservableProperty] private string _currentFilePath = "Новый файл";
     [ObservableProperty] private int _errorCount;
+    [ObservableProperty] private int _selectedResultTabIndex;
+    [ObservableProperty] private string _treeSectionTitle = "Синтаксическое дерево";
 
     public ObservableCollection<SyntaxTreeNodeViewModel> SyntaxTreeNodes { get; } = new();
     public ObservableCollection<DiagnosticMessage> Diagnostics { get; } = new();
@@ -115,6 +117,8 @@ public partial class MainWindowViewModel : ViewModelBase
         TreeText = result.TreeText;
         ErrorCount = result.Diagnostics.Count(x => x.IsError);
         Status = result.IsSuccess ? "Анализ завершен успешно" : "Анализ завершен с ошибками";
+        TreeSectionTitle = result.IsSuccess ? "Синтаксическое дерево" : "Частичное дерево разбора";
+        SelectedResultTabIndex = result.IsSuccess ? 0 : 1;
     }
 
     private static async Task ShowHelpAsync(Window? owner)

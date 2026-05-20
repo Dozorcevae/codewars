@@ -35,36 +35,61 @@
       </StackPanel>
     </Border>
 
-    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="12">
-      <Border Grid.Column="0" BorderBrush="#D7D7D7" BorderThickness="1" CornerRadius="8" Padding="10">
+    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="12" ColumnSpacing="12" MinHeight="380">
+      <Border Grid.Column="0" MinWidth="340" BorderBrush="#D7D7D7" BorderThickness="1" CornerRadius="8" Padding="10">
         <TextBox Text="{Binding SourceText}" AcceptsReturn="True" FontFamily="Consolas" FontSize="15"
-                 Watermark="type TAge = integer;" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                 Watermark="type TAge = integer;" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"/>
       </Border>
-      <TabControl Grid.Column="1">
+      <TabControl Grid.Column="1" MinWidth="360" SelectedIndex="{Binding SelectedResultTabIndex}">
         <TabItem Header="Дерево">
-          <TreeView ItemsSource="{Binding SyntaxTreeNodes}">
+          <StackPanel Spacing="8" Margin="8">
+            <TextBlock Text="{Binding TreeSectionTitle}" FontWeight="SemiBold"/>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <TreeView ItemsSource="{Binding SyntaxTreeNodes}">
             <TreeView.ItemTemplate>
               <TreeDataTemplate ItemsSource="{Binding Children}">
                 <TextBlock Text="{Binding Header}"/>
               </TreeDataTemplate>
             </TreeView.ItemTemplate>
-          </TreeView>
+            </TreeView>
+            </ScrollViewer>
+          </StackPanel>
         </TabItem>
         <TabItem Header="Сообщения">
-          <ListBox ItemsSource="{Binding Diagnostics}"/>
+          <StackPanel Spacing="8" Margin="8">
+            <TextBlock Text="Диагностические сообщения" FontWeight="SemiBold"/>
+            <ListBox ItemsSource="{Binding Diagnostics}" HorizontalContentAlignment="Stretch">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Border Padding="6" Margin="0,0,0,6" Background="#F8FAFC" CornerRadius="6">
+                    <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
         </TabItem>
         <TabItem Header="Лексемы">
-          <DataGrid ItemsSource="{Binding Tokens}" AutoGenerateColumns="False">
+          <StackPanel Spacing="8" Margin="8">
+            <TextBlock Text="Список лексем" FontWeight="SemiBold"/>
+            <DataGrid ItemsSource="{Binding Tokens}" AutoGenerateColumns="False" HorizontalAlignment="Stretch">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Тип" Binding="{Binding Type}"/>
-              <DataGridTextColumn Header="Значение" Binding="{Binding Value}"/>
-              <DataGridTextColumn Header="Строка" Binding="{Binding Line}"/>
-              <DataGridTextColumn Header="Столбец" Binding="{Binding Column}"/>
+              <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="180"/>
+              <DataGridTextColumn Header="Значение" Binding="{Binding Value}" Width="*"/>
+              <DataGridTextColumn Header="Строка" Binding="{Binding Line}" Width="90"/>
+              <DataGridTextColumn Header="Столбец" Binding="{Binding Column}" Width="90"/>
+              <DataGridTextColumn Header="Позиция" Binding="{Binding Position}" Width="90"/>
             </DataGrid.Columns>
           </DataGrid>
+          </StackPanel>
         </TabItem>
         <TabItem Header="Текст дерева">
-          <TextBox Text="{Binding TreeText}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
+          <StackPanel Spacing="8" Margin="8">
+            <TextBlock Text="Текстовое представление дерева" FontWeight="SemiBold"/>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+              <TextBox Text="{Binding TreeText}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
+            </ScrollViewer>
+          </StackPanel>
         </TabItem>
       </TabControl>
     </Grid>
