@@ -44,15 +44,23 @@
       </Border>
       <TabControl Grid.Column="1" Margin="6,0,0,0" MinWidth="360" SelectedIndex="{Binding SelectedResultTabIndex}">
         <TabItem Header="Дерево">
-          <StackPanel Spacing="8" Margin="8">
-            <TextBlock Text="{Binding TreeSectionTitle}" FontWeight="SemiBold"/>
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="{Binding TreeSectionTitle}"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto">
               <TreeView ItemsSource="{Binding SyntaxTreeNodes}">
                 <TreeView.ItemContainerTheme>
                   <ControlTheme TargetType="TreeViewItem">
-                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsExpanded"
+                            Value="{Binding IsExpanded, Mode=TwoWay}" />
                   </ControlTheme>
                 </TreeView.ItemContainerTheme>
+
                 <TreeView.ItemTemplate>
                   <TreeDataTemplate ItemsSource="{Binding Children}">
                     <TextBlock Text="{Binding Header}" TextWrapping="Wrap"/>
@@ -60,12 +68,15 @@
                 </TreeView.ItemTemplate>
               </TreeView>
             </ScrollViewer>
-          </StackPanel>
+          </Grid>
         </TabItem>
         <TabItem Header="Сообщения">
-          <StackPanel Spacing="8" Margin="8">
-            <TextBlock Text="Диагностические сообщения" FontWeight="SemiBold"/>
-            <ListBox ItemsSource="{Binding Diagnostics}">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="Диагностические сообщения"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+            <ListBox Grid.Row="1" ItemsSource="{Binding Diagnostics}">
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <Border Padding="6" Margin="0,0,0,6" Background="#F8FAFC" CornerRadius="6">
@@ -74,12 +85,15 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-          </StackPanel>
+          </Grid>
         </TabItem>
         <TabItem Header="Лексемы">
-          <StackPanel Spacing="8" Margin="8">
-            <TextBlock Text="Список лексем" FontWeight="SemiBold"/>
-            <DataGrid ItemsSource="{Binding Tokens}" AutoGenerateColumns="False" HorizontalAlignment="Stretch">
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="Список лексем"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Tokens}" AutoGenerateColumns="False" HorizontalAlignment="Stretch">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="180"/>
                 <DataGridTextColumn Header="Значение" Binding="{Binding Value}" Width="*"/>
@@ -88,15 +102,23 @@
                 <DataGridTextColumn Header="Позиция" Binding="{Binding Position}" Width="90"/>
               </DataGrid.Columns>
             </DataGrid>
-          </StackPanel>
+          </Grid>
         </TabItem>
         <TabItem Header="Текст дерева">
-          <StackPanel Spacing="8" Margin="8">
-            <TextBlock Text="Текстовое представление дерева" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding TreeText}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+          <Grid RowDefinitions="Auto,*" Margin="8">
+            <TextBlock Grid.Row="0"
+                       Text="Текстовое представление дерева"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,8"/>
+            <TextBox Grid.Row="1"
+                     Text="{Binding TreeText}"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     TextWrapping="NoWrap"
+                     FontFamily="Consolas"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
-          </StackPanel>
+          </Grid>
         </TabItem>
       </TabControl>
     </Grid>
