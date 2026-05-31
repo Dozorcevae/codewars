@@ -15,11 +15,11 @@
         <MenuItem Header="Сохранить как" Command="{Binding SaveAsCommand}" CommandParameter="{Binding $parent[Window]}"/>
         <Separator/><MenuItem Header="Выход" Command="{Binding ExitCommand}" CommandParameter="{Binding $parent[Window]}"/></MenuItem>
       <MenuItem Header="Правка">
-        <MenuItem Header="Отменить" Command="{Binding UndoCommand}"/>
-        <MenuItem Header="Вырезать" Command="{Binding CutCommand}"/>
-        <MenuItem Header="Копировать" Command="{Binding CopyCommand}"/>
-        <MenuItem Header="Вставить" Command="{Binding PasteCommand}"/>
-        <MenuItem Header="Выделить все" Command="{Binding SelectAllCommand}"/>
+        <MenuItem Header="Отменить" Command="{Binding UndoCommand}" CommandParameter="{Binding #SourceEditor}"/>
+        <MenuItem Header="Вырезать" Command="{Binding CutCommand}" CommandParameter="{Binding #SourceEditor}"/>
+        <MenuItem Header="Копировать" Command="{Binding CopyCommand}" CommandParameter="{Binding #SourceEditor}"/>
+        <MenuItem Header="Вставить" Command="{Binding PasteCommand}" CommandParameter="{Binding #SourceEditor}"/>
+        <MenuItem Header="Выделить все" Command="{Binding SelectAllCommand}" CommandParameter="{Binding #SourceEditor}"/>
       </MenuItem>
       <MenuItem Header="Анализ"><MenuItem Header="Запустить анализ" Command="{Binding AnalyzeCommand}"/></MenuItem>
       <MenuItem Header="Справка"><MenuItem Header="Руководство пользователя" Command="{Binding HelpCommand}" CommandParameter="{Binding $parent[Window]}"/>
@@ -37,7 +37,7 @@
 
     <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="12" MinHeight="380">
       <Border Grid.Column="0" Margin="0,0,6,0" MinWidth="340" BorderBrush="#D7D7D7" BorderThickness="1" CornerRadius="8" Padding="10">
-        <TextBox Text="{Binding SourceText}" AcceptsReturn="True" FontFamily="Consolas" FontSize="15"
+        <TextBox x:Name="SourceEditor" Text="{Binding SourceText}" AcceptsReturn="True" FontFamily="Consolas" FontSize="15"
                  Watermark="type TAge = integer;" TextWrapping="Wrap"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
@@ -54,12 +54,12 @@
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Auto">
               <TreeView ItemsSource="{Binding SyntaxTreeNodes}">
-                <TreeView.ItemContainerTheme>
-                  <ControlTheme TargetType="TreeViewItem">
+                <TreeView.Styles>
+                  <Style Selector="TreeViewItem">
                     <Setter Property="IsExpanded"
                             Value="{Binding IsExpanded, Mode=TwoWay}" />
-                  </ControlTheme>
-                </TreeView.ItemContainerTheme>
+                  </Style>
+                </TreeView.Styles>
 
                 <TreeView.ItemTemplate>
                   <TreeDataTemplate ItemsSource="{Binding Children}">
@@ -79,7 +79,7 @@
             <ListBox Grid.Row="1" ItemsSource="{Binding Diagnostics}">
               <ListBox.ItemTemplate>
                 <DataTemplate>
-                  <Border Padding="6" Margin="0,0,0,6" Background="#F8FAFC" CornerRadius="6">
+                  <Border Padding="6" Margin="0,0,0,6" Background="#F8FAFC" CornerRadius="6" HorizontalAlignment="Stretch">
                     <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
                   </Border>
                 </DataTemplate>

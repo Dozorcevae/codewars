@@ -3,6 +3,10 @@ using Avalonia.Platform.Storage;
 
 namespace PascalTypeAnalyzer.Infrastructure.FileSystem;
 
+/// <summary>
+/// Кроссплатформенная работа с файлами. Диалоги открываются через Avalonia
+/// StorageProvider, поэтому слой не зависит от Windows-only API.
+/// </summary>
 public sealed class FileService
 {
     public async Task<(string? Path, string? Content)> OpenFileAsync(IStorageProvider storageProvider)

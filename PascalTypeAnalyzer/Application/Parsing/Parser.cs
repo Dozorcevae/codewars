@@ -4,8 +4,14 @@ using PascalTypeAnalyzer.Domain.Tokens;
 
 namespace PascalTypeAnalyzer.Application.Parsing;
 
+/// <summary>
+/// Синтаксический анализатор раздела type. Каждый метод Parse* соответствует
+/// одному нетерминалу грамматики и строит свою часть синтаксического дерева.
+/// </summary>
 public sealed class Parser
 {
+    private static readonly string[] StandardTypes = ["integer", "real", "boolean", "char", "string"];
+
     private readonly IReadOnlyList<Token> _tokens;
     private readonly List<DiagnosticMessage> _diagnostics = new();
     private int _position;
@@ -21,19 +27,37 @@ public sealed class Parser
     public SyntaxNode ParseTypeSection()
     {
         var node = new SyntaxNode("TypeSection");
-        if (!Match(TokenType.TypeKeyword, "после начала ввода ожидается ключевое слово 'type'.", out var typeToken))
+        if (!Match(TokenType.TypeKeyword, "в начале раздела ожидается ключевое слово \"type\".", out var typeToken))
         {
-            Recover();
+            RecoverToDeclarationBoundary();
             return node;
         }
 
-        node.Add(new SyntaxNode("TypeKeyword", typeToken.Value, typeToken));
+        node.Add(Terminal("TypeKeyword", typeToken));
+
+        if (Current.Type == TokenType.EndOfInput)
+        {
+            AddError(Current, "после ключевого слова \"type\" ожидается имя типа.");
+            return node;
+        }
 
         while (Current.Type != TokenType.EndOfInput)
         {
-            var decl = ParseTypeDeclaration();
-            if (decl is not null) node.Add(decl);
-            else Recover();
+            // Восстановление после ошибки обязано продвинуться по потоку токенов.
+            // Это защищает анализатор от зависания даже на сильно поврежденном вводе.
+            var positionBeforeDeclaration = _position;
+            var declaration = ParseTypeDeclaration();
+            if (declaration is not null)
+            {
+                node.Add(declaration);
+                continue;
+            }
+
+            RecoverToDeclarationBoundary();
+            if (_position == positionBeforeDeclaration && Current.Type != TokenType.EndOfInput)
+            {
+                Next();
+            }
         }
 
         return node;
@@ -42,19 +66,34 @@ public sealed class Parser
     public SyntaxNode? ParseTypeDeclaration()
     {
         var node = new SyntaxNode("TypeDeclaration");
-        if (!Match(TokenType.Identifier, "после ключевого слова 'type' ожидается имя типа.", out var id)) return null;
-        node.Add(new SyntaxNode("Identifier", id.Value, id));
+        if (!Match(TokenType.Identifier, "после ключевого слова \"type\" ожидается имя типа.", out var identifier))
+        {
+            return null;
+        }
 
-        if (!Match(TokenType.Equal, "после имени типа ожидается символ '='.", out var eq)) return null;
-        node.Add(new SyntaxNode("Equal", eq.Value, eq));
+        node.Add(Terminal("Identifier", identifier));
+
+        if (!Match(TokenType.Equal, "после имени типа ожидается символ \"=\".", out var equal))
+        {
+            return null;
+        }
+
+        node.Add(Terminal("Equal", equal));
 
         var typeSpec = ParseTypeSpec();
-        if (typeSpec is null) return null;
+        if (typeSpec is null)
+        {
+            return null;
+        }
+
         node.Add(typeSpec);
 
-        if (!Match(TokenType.Semicolon, "описание типа должно заканчиваться символом ';'.", out var semicolon)) return null;
-        node.Add(new SyntaxNode("Semicolon", semicolon.Value, semicolon));
+        if (!Match(TokenType.Semicolon, BuildMissingSemicolonMessage(typeSpec), out var semicolon))
+        {
+            return null;
+        }
 
+        node.Add(Terminal("Semicolon", semicolon));
         return node;
     }
 
@@ -64,8 +103,8 @@ public sealed class Parser
         TokenType.IntegerNumber => ParseSubrangeType(),
         TokenType.LeftParen => ParseEnumType(),
         TokenType.ArrayKeyword => ParseArrayType(),
-        TokenType.Identifier => ConsumeIdentifierType(),
-        _ => ErrorNode("ожидается описание типа (стандартный, интервальный, перечислимый, массив или пользовательский тип).")
+        TokenType.Identifier => ParseUserDefinedType(),
+        _ => ErrorNode("ожидается описание типа: стандартный тип, диапазон, перечисление, массив или имя пользовательского типа.")
     };
 
     public SyntaxNode ParseStandardType()
@@ -77,102 +116,199 @@ public sealed class Parser
     public SyntaxNode? ParseSubrangeType()
     {
         var node = new SyntaxNode("SubrangeType");
-        if (!Match(TokenType.IntegerNumber, "в интервальном типе ожидается левая целая граница.", out var left)) return null;
-        node.Add(new SyntaxNode("Integer", left.Value, left));
+        if (!Match(TokenType.IntegerNumber, "в интервальном типе ожидается левая целая граница.", out var left))
+        {
+            return null;
+        }
 
-        if (!Match(TokenType.Range, "в интервальном типе ожидается знак диапазона '..'.", out var range)) return null;
-        node.Add(new SyntaxNode("Range", range.Value, range));
+        node.Add(Terminal("Integer", left));
 
-        if (!Match(TokenType.IntegerNumber, "в интервальном типе ожидается правая целая граница.", out var right)) return null;
-        node.Add(new SyntaxNode("Integer", right.Value, right));
+        if (!Match(TokenType.Range, "в интервальном типе ожидается знак диапазона \"..\".", out var range))
+        {
+            return null;
+        }
+
+        node.Add(Terminal("Range", range));
+
+        if (!Match(TokenType.IntegerNumber, "в интервальном типе ожидается правая целая граница.", out var right))
+        {
+            return null;
+        }
+
+        node.Add(Terminal("Integer", right));
         return node;
     }
 
     public SyntaxNode? ParseEnumType()
     {
         var node = new SyntaxNode("EnumType");
-        if (!Match(TokenType.LeftParen, "ожидается '(' для перечислимого типа.", out var leftParen)) return null;
-        node.Add(new SyntaxNode("LeftParen", leftParen.Value, leftParen));
+        if (!Match(TokenType.LeftParen, "для перечислимого типа ожидается символ \"(\".", out var leftParen))
+        {
+            return null;
+        }
 
-        if (!Match(TokenType.Identifier, "в перечислимом типе ожидается идентификатор элемента.", out var id)) return null;
-        node.Add(new SyntaxNode("Identifier", id.Value, id));
+        node.Add(Terminal("LeftParen", leftParen));
+
+        if (!Match(TokenType.Identifier, "в перечислимом типе ожидается имя элемента.", out var identifier))
+        {
+            return null;
+        }
+
+        node.Add(Terminal("Identifier", identifier));
 
         while (Current.Type == TokenType.Comma)
         {
-            var comma = Next();
-            node.Add(new SyntaxNode("Comma", comma.Value, comma));
-            if (!Match(TokenType.Identifier, "после запятой ожидается идентификатор элемента перечисления.", out var nextId)) return null;
-            node.Add(new SyntaxNode("Identifier", nextId.Value, nextId));
+            node.Add(Terminal("Comma", Next()));
+            if (!Match(TokenType.Identifier, "после запятой ожидается имя элемента перечисления.", out var nextIdentifier))
+            {
+                return null;
+            }
+
+            node.Add(Terminal("Identifier", nextIdentifier));
         }
 
-        if (!Match(TokenType.RightParen, "ожидается ')' в конце перечислимого типа.", out var rp)) return null;
-        node.Add(new SyntaxNode("RightParen", rp.Value, rp));
+        if (!Match(TokenType.RightParen, "в конце перечислимого типа ожидается символ \")\".", out var rightParen))
+        {
+            return null;
+        }
+
+        node.Add(Terminal("RightParen", rightParen));
         return node;
     }
 
     public SyntaxNode? ParseArrayType()
     {
         var node = new SyntaxNode("ArrayType");
-        var array = Next();
-        node.Add(new SyntaxNode("ArrayKeyword", array.Value, array));
-        if (!Match(TokenType.LeftBracket, "после ключевого слова 'array' ожидается '['.", out var lb)) return null;
-        node.Add(new SyntaxNode("LeftBracket", lb.Value, lb));
+        node.Add(Terminal("ArrayKeyword", Next()));
 
-        var index = ParseIndexType();
-        if (index is null) return null;
-        node.Add(index);
+        if (!Match(TokenType.LeftBracket, "после ключевого слова \"array\" ожидается символ \"[\".", out var leftBracket))
+        {
+            return null;
+        }
 
-        if (!Match(TokenType.RightBracket, "после типа индекса ожидается ']'.", out var rb)) return null;
-        node.Add(new SyntaxNode("RightBracket", rb.Value, rb));
+        node.Add(Terminal("LeftBracket", leftBracket));
 
-        if (!Match(TokenType.OfKeyword, "после ']' ожидается ключевое слово 'of'.", out var of)) return null;
-        node.Add(new SyntaxNode("OfKeyword", of.Value, of));
+        var indexType = ParseIndexType();
+        if (indexType is null)
+        {
+            return null;
+        }
 
-        var nested = ParseTypeSpec();
-        if (nested is null) return null;
-        node.Add(nested);
+        node.Add(indexType);
+
+        if (!Match(TokenType.RightBracket, "после типа индекса ожидается символ \"]\".", out var rightBracket))
+        {
+            return null;
+        }
+
+        node.Add(Terminal("RightBracket", rightBracket));
+
+        if (!Match(TokenType.OfKeyword, "после символа \"]\" ожидается ключевое слово \"of\".", out var ofKeyword))
+        {
+            return null;
+        }
+
+        node.Add(Terminal("OfKeyword", ofKeyword));
+
+        var elementType = ParseTypeSpec();
+        if (elementType is null)
+        {
+            return null;
+        }
+
+        node.Add(elementType);
         return node;
     }
 
     public SyntaxNode? ParseIndexType() => Current.Type switch
     {
         TokenType.IntegerNumber => ParseSubrangeType(),
-        TokenType.Identifier => ConsumeIdentifierType(),
-        _ => ErrorNode("в массиве ожидается индексный тип (интервал или имя типа).")
+        TokenType.Identifier => ParseUserDefinedType(),
+        _ => ErrorNode("в массиве ожидается индексный тип: диапазон или имя пользовательского типа.")
     };
 
-    private SyntaxNode ConsumeIdentifierType()
+    private SyntaxNode ParseUserDefinedType()
     {
-        var id = Next();
-        return new SyntaxNode("IdentifierType", id.Value, id);
+        var identifier = Next();
+        return new SyntaxNode("IdentifierType", identifier.Value, identifier);
     }
 
     private bool Match(TokenType type, string message, out Token token)
     {
         token = Current;
-        if (Current.Type == type)
+        if (Current.Type != type)
         {
-            token = Next();
-            return true;
+            AddError(Current, message);
+            return false;
         }
 
-        _diagnostics.Add(new DiagnosticMessage(Current.Line, Current.Column, message));
-        return false;
+        token = Next();
+        return true;
     }
 
     private SyntaxNode? ErrorNode(string message)
     {
-        _diagnostics.Add(new DiagnosticMessage(Current.Line, Current.Column, message));
+        AddError(Current, message);
         return null;
     }
 
-    private void Recover()
+    private void AddError(Token token, string message)
+        => _diagnostics.Add(new DiagnosticMessage(token.Line, token.Column, message));
+
+    private static SyntaxNode Terminal(string name, Token token) => new(name, token.Value, token);
+
+    private static string BuildMissingSemicolonMessage(SyntaxNode typeSpec)
     {
+        const string message = "описание типа должно заканчиваться символом \";\".";
+        if (typeSpec.Name != "IdentifierType" || string.IsNullOrWhiteSpace(typeSpec.Value))
+        {
+            return message;
+        }
+
+        var standardType = StandardTypes.FirstOrDefault(candidate =>
+            CalculateLevenshteinDistance(typeSpec.Value, candidate) == 1);
+
+        return standardType is null
+            ? message
+            : $"{message} Если вы хотели указать стандартный тип \"{standardType}\", проверьте его написание.";
+    }
+
+    private static int CalculateLevenshteinDistance(string left, string right)
+    {
+        var distances = new int[left.Length + 1, right.Length + 1];
+        for (var i = 0; i <= left.Length; i++) distances[i, 0] = i;
+        for (var j = 0; j <= right.Length; j++) distances[0, j] = j;
+
+        for (var i = 1; i <= left.Length; i++)
+        {
+            for (var j = 1; j <= right.Length; j++)
+            {
+                var substitutionCost = char.ToLowerInvariant(left[i - 1]) == char.ToLowerInvariant(right[j - 1]) ? 0 : 1;
+                distances[i, j] = Math.Min(
+                    Math.Min(distances[i - 1, j] + 1, distances[i, j - 1] + 1),
+                    distances[i - 1, j - 1] + substitutionCost);
+            }
+        }
+
+        return distances[left.Length, right.Length];
+    }
+
+    private void RecoverToDeclarationBoundary()
+    {
+        // Точка с запятой завершает ошибочное объявление. Повторное слово type
+        // также поглощаем: оно начинает новый раздел и не должно зациклить парсер.
         while (Current.Type is not TokenType.Semicolon and not TokenType.TypeKeyword and not TokenType.EndOfInput)
+        {
             Next();
-        if (Current.Type == TokenType.Semicolon) Next();
+        }
+
+        if (Current.Type is TokenType.Semicolon or TokenType.TypeKeyword)
+        {
+            Next();
+        }
     }
 
     private Token Current => _tokens[Math.Min(_position, _tokens.Count - 1)];
+
     private Token Next() => _tokens[Math.Min(_position++, _tokens.Count - 1)];
 }

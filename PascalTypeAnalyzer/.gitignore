@@ -15,3 +15,5 @@ obj/
 *.pdb
 *.deps.json
 *.runtimeconfig.json
+*.user
+*.suo

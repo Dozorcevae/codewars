@@ -3,6 +3,10 @@ using PascalTypeAnalyzer.Domain.Tokens;
 
 namespace PascalTypeAnalyzer.Application.Lexing;
 
+/// <summary>
+/// Преобразует исходный текст в последовательность токенов и сохраняет
+/// координаты каждой лексемы для последующей диагностики.
+/// </summary>
 public sealed class Lexer
 {
     private static readonly HashSet<string> StandardTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -19,6 +23,8 @@ public sealed class Lexer
         var line = 1;
         var column = 1;
 
+        // Координаты сохраняются до чтения лексемы: после ReadWhile указатель
+        // уже перемещен вперед, а пользователю нужна позиция начала токена.
         while (pos < text.Length)
         {
             var ch = text[pos];
@@ -77,6 +83,8 @@ public sealed class Lexer
                     Advance(ch, ref pos, ref line, ref column);
                     break;
                 case '.':
+                    // Диапазон — единая лексема. Одиночную точку сохраняем как
+                    // Unknown, чтобы таблица лексем тоже объясняла место ошибки.
                     if (pos + 1 < text.Length && text[pos + 1] == '.')
                     {
                         tokens.Add(new Token(TokenType.Range, "..", startPos, startLine, startCol));

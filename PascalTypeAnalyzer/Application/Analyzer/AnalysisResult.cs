@@ -4,6 +4,9 @@ using PascalTypeAnalyzer.Domain.Tokens;
 
 namespace PascalTypeAnalyzer.Application.Analyzer;
 
+/// <summary>
+/// Полный результат одного запуска анализатора, готовый для отображения в UI.
+/// </summary>
 public sealed class AnalysisResult
 {
     public required bool IsSuccess { get; init; }

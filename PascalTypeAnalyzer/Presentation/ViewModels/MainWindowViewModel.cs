@@ -11,6 +11,9 @@ using PascalTypeAnalyzer.Infrastructure.FileSystem;
 
 namespace PascalTypeAnalyzer.Presentation.ViewModels;
 
+/// <summary>
+/// Состояние главного окна. ViewModel координирует команды интерфейса,
+/// </summary>
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly AnalyzerService _analyzer;
@@ -55,17 +58,18 @@ public partial class MainWindowViewModel : ViewModelBase
         HelpCommand = new AsyncRelayCommand<Window?>(ShowHelpAsync);
         AboutCommand = new AsyncRelayCommand<Window?>(ShowAboutAsync);
         ExitCommand = new RelayCommand<Window?>(w => w?.Close());
-        UndoCommand = new RelayCommand(() => Status = "Отмена доступна через системные сочетания клавиш.");
-        CutCommand = new RelayCommand(() => Status = "Вырезать: используйте Cmd/Ctrl+X.");
-        CopyCommand = new RelayCommand(() => Status = "Копировать: используйте Cmd/Ctrl+C.");
-        PasteCommand = new RelayCommand(() => Status = "Вставить: используйте Cmd/Ctrl+V.");
-        SelectAllCommand = new RelayCommand(() => Status = "Выделить все: используйте Cmd/Ctrl+A.");
+        UndoCommand = new RelayCommand<TextBox?>(editor => editor?.Undo());
+        CutCommand = new RelayCommand<TextBox?>(editor => editor?.Cut());
+        CopyCommand = new RelayCommand<TextBox?>(editor => editor?.Copy());
+        PasteCommand = new RelayCommand<TextBox?>(editor => editor?.Paste());
+        SelectAllCommand = new RelayCommand<TextBox?>(editor => editor?.SelectAll());
     }
 
     private void NewFile()
     {
         SourceText = string.Empty;
         CurrentFilePath = "Новый файл";
+        ResetAnalysisPresentation();
         Status = "Создан новый файл";
     }
 
@@ -77,6 +81,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SourceText = result.Content;
         CurrentFilePath = result.Path ?? "Новый файл";
+        ResetAnalysisPresentation();
         Status = "Файл открыт";
     }
 
@@ -118,7 +123,29 @@ public partial class MainWindowViewModel : ViewModelBase
         ErrorCount = result.Diagnostics.Count(x => x.IsError);
         Status = result.IsSuccess ? "Анализ завершен успешно" : "Анализ завершен с ошибками";
         TreeSectionTitle = result.IsSuccess ? "Синтаксическое дерево" : "Частичное дерево разбора";
+
+        // При ошибке сразу показываем диагностику. Частичное дерево остается
+        // доступным на соседней вкладке и явно подписано, чтобы не вводить в заблуждение.
         SelectedResultTabIndex = result.IsSuccess ? 0 : 1;
+    }
+
+    partial void OnSourceTextChanged(string value)
+    {
+        // Результаты относятся к предыдущей версии текста. После редактирования
+        // очищаем их, чтобы пользователь не принял устаревшее дерево за актуальное.
+        ResetAnalysisPresentation();
+        Status = "Текст изменен. Запустите анализ повторно";
+    }
+
+    private void ResetAnalysisPresentation()
+    {
+        SyntaxTreeNodes.Clear();
+        Diagnostics.Clear();
+        Tokens.Clear();
+        TreeText = string.Empty;
+        ErrorCount = 0;
+        TreeSectionTitle = "Синтаксическое дерево";
+        SelectedResultTabIndex = 0;
     }
 
     private static async Task ShowHelpAsync(Window? owner)

@@ -1,5 +1,6 @@
 namespace PascalTypeAnalyzer.Domain.Tokens;
 
+/// <summary>Виды лексем поддерживаемого подъязыка Pascal.</summary>
 public enum TokenType
 {
     TypeKeyword,
