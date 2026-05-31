@@ -13,6 +13,7 @@ namespace PascalTypeAnalyzer.Presentation.ViewModels;
 
 /// <summary>
 /// Состояние главного окна. ViewModel координирует команды интерфейса,
+/// но не содержит правил языка: анализ выполняет AnalyzerService.
 /// </summary>
 public partial class MainWindowViewModel : ViewModelBase
 {
