@@ -44,12 +44,18 @@ public sealed class Parser
         while (Current.Type != TokenType.EndOfInput)
         {
             // Восстановление после ошибки обязано продвинуться по потоку токенов.
-            // Это защищает анализатор от зависания даже на сильно поврежденном вводе.
+            // Частично разобранное объявление сохраняем в дереве до синхронизации:
+            // пользователь увидит уже распознанную часть конструкции.
             var positionBeforeDeclaration = _position;
+            var diagnosticsBeforeDeclaration = _diagnostics.Count;
             var declaration = ParseTypeDeclaration();
             if (declaration is not null)
             {
                 node.Add(declaration);
+            }
+
+            if (_diagnostics.Count == diagnosticsBeforeDeclaration)
+            {
                 continue;
             }
 
@@ -75,22 +81,27 @@ public sealed class Parser
 
         if (!Match(TokenType.Equal, "после имени типа ожидается символ \"=\".", out var equal))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("Equal", equal));
 
+        var diagnosticsBeforeTypeSpec = _diagnostics.Count;
         var typeSpec = ParseTypeSpec();
         if (typeSpec is null)
         {
-            return null;
+            return node;
         }
 
         node.Add(typeSpec);
+        if (_diagnostics.Count > diagnosticsBeforeTypeSpec)
+        {
+            return node;
+        }
 
         if (!Match(TokenType.Semicolon, BuildMissingSemicolonMessage(typeSpec), out var semicolon))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("Semicolon", semicolon));
@@ -125,14 +136,14 @@ public sealed class Parser
 
         if (!Match(TokenType.Range, "в интервальном типе ожидается знак диапазона \"..\".", out var range))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("Range", range));
 
         if (!Match(TokenType.IntegerNumber, "в интервальном типе ожидается правая целая граница.", out var right))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("Integer", right));
@@ -151,7 +162,7 @@ public sealed class Parser
 
         if (!Match(TokenType.Identifier, "в перечислимом типе ожидается имя элемента.", out var identifier))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("Identifier", identifier));
@@ -161,7 +172,7 @@ public sealed class Parser
             node.Add(Terminal("Comma", Next()));
             if (!Match(TokenType.Identifier, "после запятой ожидается имя элемента перечисления.", out var nextIdentifier))
             {
-                return null;
+                return node;
             }
 
             node.Add(Terminal("Identifier", nextIdentifier));
@@ -169,7 +180,7 @@ public sealed class Parser
 
         if (!Match(TokenType.RightParen, "в конце перечислимого типа ожидается символ \")\".", out var rightParen))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("RightParen", rightParen));
@@ -183,40 +194,50 @@ public sealed class Parser
 
         if (!Match(TokenType.LeftBracket, "после ключевого слова \"array\" ожидается символ \"[\".", out var leftBracket))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("LeftBracket", leftBracket));
 
+        var diagnosticsBeforeIndexType = _diagnostics.Count;
         var indexType = ParseIndexType();
         if (indexType is null)
         {
-            return null;
+            return node;
         }
 
         node.Add(indexType);
+        if (_diagnostics.Count > diagnosticsBeforeIndexType)
+        {
+            return node;
+        }
 
         if (!Match(TokenType.RightBracket, "после типа индекса ожидается символ \"]\".", out var rightBracket))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("RightBracket", rightBracket));
 
         if (!Match(TokenType.OfKeyword, "после символа \"]\" ожидается ключевое слово \"of\".", out var ofKeyword))
         {
-            return null;
+            return node;
         }
 
         node.Add(Terminal("OfKeyword", ofKeyword));
 
+        var diagnosticsBeforeElementType = _diagnostics.Count;
         var elementType = ParseTypeSpec();
         if (elementType is null)
         {
-            return null;
+            return node;
         }
 
         node.Add(elementType);
+        if (_diagnostics.Count > diagnosticsBeforeElementType)
+        {
+            return node;
+        }
         return node;
     }
 

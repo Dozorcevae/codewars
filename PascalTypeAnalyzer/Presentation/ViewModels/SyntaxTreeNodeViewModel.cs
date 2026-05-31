@@ -61,10 +61,15 @@ public sealed partial class SyntaxTreeNodeViewModel : ObservableObject
         var typeSpec = FindTypeSpecAfterEqual(declaration);
         var typeSummary = typeSpec is null ? null : BuildTypeSpecSummary(typeSpec);
 
-        // При частичном дереве после ошибки не пытаемся угадывать подпись:
-        // базовый заголовок остается корректным и не вводит пользователя в заблуждение.
-        return string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(typeSummary)
-            ? declaration.Name
+        // Для частичного дерева показываем только достоверно распознанные данные:
+        // имя объявления полезно само по себе, а незавершенную спецификацию не угадываем.
+        if (string.IsNullOrWhiteSpace(identifier))
+        {
+            return declaration.Name;
+        }
+
+        return string.IsNullOrWhiteSpace(typeSummary)
+            ? $"{declaration.Name}: {identifier}"
             : $"{declaration.Name}: {identifier} = {typeSummary}";
     }
 
